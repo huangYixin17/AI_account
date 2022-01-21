@@ -101,6 +101,8 @@ foreach ($line_api->parseEvents() as $event) {
                         logMessage('[ReplyMessage]'.json_encode($reply_array, JSON_UNESCAPED_UNICODE).__LINE__, 'line_webhook');
                         $line_api->replyMessage($reply_array);
                     }else{
+                        $sql_query = "DELETE FROM record_account WHERE user_uuid='$userID'";
+                        $db_result = DBDELETE($sql_query);
                         $message_array['text'] = '已更新';
                         array_push($reply_array['messages'],$message_array);
                         logMessage('[ReplyMessage]'.json_encode($reply_array,JSON_UNESCAPED_UNICODE).__LINE__,'line_webhook');
@@ -108,7 +110,7 @@ foreach ($line_api->parseEvents() as $event) {
                     }
                     break;
                 case 'set_db_month':
-                    $sql_query = "UPDATE account_user SET current_month='2021-08' WHERE user_uuid='$userID'";
+                    $sql_query = "UPDATE account_user SET current_month='2021-08-11' WHERE user_uuid='$userID'";
                     $db_result = DBSELECT($sql_query);
                     if($db_result['result'] == false){
                         $message_array['text'] = '系統異常，請稍後...';
@@ -126,7 +128,7 @@ foreach ($line_api->parseEvents() as $event) {
                     $GetDialogflowData = $dialogflow->detect_intent_texts(DIALOGFLOW_PROJECT,$event['message']['text'],$event['source']['userId']);
                     logMessage("[GetDialogflowData]".json_encode($GetDialogflowData,JSON_UNESCAPED_UNICODE),'line_webhook');
         
-                    $handleDialogflow = HandleDialogflowResponse($GetDialogflowData,$userID,$mysql);
+                    $handleDialogflow = HandleDialogflowResponse($GetDialogflowData,$userID);
                     logMessage('[handleDialogflowResponse]'.json_encode($handleDialogflow,JSON_UNESCAPED_UNICODE),'line_webhook');
                     
                     $GetReturnText = GetReturnText($handleDialogflow,$userID);
