@@ -55,7 +55,7 @@ foreach ($line_api->parseEvents() as $event) {
     $db_result = DBSELECT("SELECT user_uuid FROM account_user WHERE user_uuid = '$userID'");
     
     if($db_result['result'] == false){
-        $message_array['text'] = '系統異常，請稍後...';
+        $message_array['text'] = ERROR_TEXT;
         array_push($reply_array['messages'],$message_array);
         logMessage('[ReplyMessage]'.json_encode($reply_array,JSON_UNESCAPED_UNICODE).__LINE__,'line_webhook');
         $line_api->replyMessage($reply_array);
@@ -78,7 +78,7 @@ foreach ($line_api->parseEvents() as $event) {
             $db_result = DBINSERT($sql_query,$column);
 
             if($db_result['result'] != true){
-                $message_array['text'] = '系統異常，請稍後...';
+                $message_array['text'] = ERROR_TEXT;
                 array_push($reply_array['messages'],$message_array);
                 logMessage('[ReplyMessage]'.json_encode($reply_array,JSON_UNESCAPED_UNICODE).__LINE__,'line_webhook');
                 $line_api->replyMessage($reply_array);
@@ -105,7 +105,7 @@ foreach ($line_api->parseEvents() as $event) {
             $db_result = DBINSERT($sql_query,$column);
 
             if($db_result['result'] != true){
-                $message_array['text'] = '系統異常，請稍後...';
+                $message_array['text'] = ERROR_TEXT;
                 array_push($reply_array['messages'],$message_array);
                 logMessage('[ReplyMessage]'.json_encode($reply_array,JSON_UNESCAPED_UNICODE).__LINE__,'line_webhook');
                 $line_api->replyMessage($reply_array);
@@ -118,7 +118,7 @@ foreach ($line_api->parseEvents() as $event) {
                     $sql_query = "DELETE FROM account_user WHERE user_uuid='$userID'";
                     $db_result = DBDELETE($sql_query);
                     if ($db_result['result'] == false) {
-                        $message_array['text'] = '系統異常，請稍後...';
+                        $message_array['text'] = ERROR_TEXT;
                         array_push($reply_array['messages'], $message_array);
                         logMessage('[ReplyMessage]'.json_encode($reply_array, JSON_UNESCAPED_UNICODE).__LINE__, 'line_webhook');
                         $line_api->replyMessage($reply_array);
@@ -135,7 +135,7 @@ foreach ($line_api->parseEvents() as $event) {
                     $sql_query = "UPDATE account_user SET current_month='2021-08-11' WHERE user_uuid='$userID'";
                     $db_result = DBSELECT($sql_query);
                     if($db_result['result'] == false){
-                        $message_array['text'] = '系統異常，請稍後...';
+                        $message_array['text'] = ERROR_TEXT;
                         array_push($reply_array['messages'],$message_array);
                         logMessage('[ReplyMessage]'.json_encode($reply_array,JSON_UNESCAPED_UNICODE).__LINE__,'line_webhook');
                         $line_api->replyMessage($reply_array);
@@ -159,7 +159,7 @@ foreach ($line_api->parseEvents() as $event) {
                         $db_result = DBSELECT($sql_query);
 
                         if($db_result['result'] != true){
-                            $message_array['text'] = '系統異常，請稍後...';
+                            $message_array['text'] = ERROR_TEXT;
                             array_push($reply_array['messages'],$message_array);
                             logMessage('[ReplyMessage]'.json_encode($reply_array,JSON_UNESCAPED_UNICODE).__LINE__,'line_webhook');
                             $line_api->replyMessage($reply_array);
