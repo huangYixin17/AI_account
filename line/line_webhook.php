@@ -66,12 +66,13 @@ foreach ($line_api->parseEvents() as $event) {
         if(empty($result)){
             //insert user Data
 
-            $sql_query = "INSERT INTO account_user (user_uuid,account,current_month)
-            VALUES (:user_uuid,:account,:current_month)";
+            $sql_query = "INSERT INTO account_user (user_uuid,account,current_month,created_date)
+            VALUES (:user_uuid,:account,:current_month,:created_date)";
             $column = array(
                 ':user_uuid' => $userID,
                 ':account' => 0,
-                ':current_month' => $data = date('Y-m')
+                ':current_month' => date('Y-m-d'),
+                ':created_date' => date('Y-m-d H:i:s'),
             );
 
             $db_result = DBINSERT($sql_query,$column);
@@ -89,6 +90,27 @@ foreach ($line_api->parseEvents() as $event) {
 
     switch ($event['type']) {
         case 'message':
+
+            //紀錄使用者輸入的文字
+            $sql_query = "INSERT INTO account_message (message_uuid,user_uuid,request_text,created_date) 
+                    VALUES(:message_uuid,:user_uuid,:request_text,:date_)";
+
+            $message_uuid = uuid();
+            $column = array(
+                ':message_uuid' => $message_uuid,
+                ':user_uuid' => $userID,
+                ':request_text' => $event['message']['text'],
+                ':date_' => date('Y-m-d H:i:s')
+            );
+            $db_result = DBINSERT($sql_query,$column);
+
+            if($db_result['result'] != true){
+                $message_array['text'] = '系統異常，請稍後...';
+                array_push($reply_array['messages'],$message_array);
+                logMessage('[ReplyMessage]'.json_encode($reply_array,JSON_UNESCAPED_UNICODE).__LINE__,'line_webhook');
+                $line_api->replyMessage($reply_array);
+                break;
+            }
 
             switch ($event['message']['text']) {
                 case 'delete_user_data':
@@ -133,37 +155,18 @@ foreach ($line_api->parseEvents() as $event) {
                     
                     $GetReturnText = GetReturnText($handleDialogflow,$userID);
                     foreach($GetReturnText as $text){
-                        $message_array['text'] = $text;
-                        array_push($reply_array['messages'],$message_array);
-                    }
-        
-                    //is new month?
-                    $sql_query = "SELECT current_month FROM account_user WHERE user_uuid = '$userID'";
-                    $db_result = DBSELECT($sql_query);
+                        $sql_query = "UPDATE account_message SET response_text='$text' WHERE message_uuid='$message_uuid'";
+                        $db_result = DBSELECT($sql_query);
 
-                    if($db_result['result'] == false){
-                        $message_array['text'] = '系統異常，請稍後...';
-                        array_push($reply_array['messages'],$message_array);
-                        logMessage('[ReplyMessage]'.json_encode($reply_array,JSON_UNESCAPED_UNICODE).__LINE__,'line_webhook');
-                        $line_api->replyMessage($reply_array);
-                    }else{
-                        $result = $db_result['statement']->fetch(PDO::FETCH_ASSOC);
-                        $db_month = substr($result['current_month'],0,7);
-                        $current_data = date('Y-m-d');
-                        $current_y_m = substr($current_data,0,7);
-                        logMessage('current_year'.$current_y_m , 'line_webhook' );
-
-
-                        if( $current_y_m != $db_month){
-                            $sql_query = "UPDATE account_user SET current_month='$current_data' WHERE user_uuid = '$userID'";
-                            $db_result = DBSELECT($sql_query);
-
-                            if($db_result['result'] == false){
-                                $message_array['text'] = '系統異常，請稍後...';
-                                array_push($reply_array['messages'],$message_array);
-                                logMessage('[ReplyMessage]'.json_encode($reply_array,JSON_UNESCAPED_UNICODE).__LINE__,'line_webhook');
-                                $line_api->replyMessage($reply_array);
-                            }
+                        if($db_result['result'] != true){
+                            $message_array['text'] = '系統異常，請稍後...';
+                            array_push($reply_array['messages'],$message_array);
+                            logMessage('[ReplyMessage]'.json_encode($reply_array,JSON_UNESCAPED_UNICODE).__LINE__,'line_webhook');
+                            $line_api->replyMessage($reply_array);
+                            break;
+                        }else{
+                            $message_array['text'] = $text;
+                            array_push($reply_array['messages'],$message_array);
                         }
                     }
                     break;
@@ -187,3 +190,13 @@ foreach ($line_api->parseEvents() as $event) {
     $line_api->replyMessage($reply_array);
 }
 
+function uuid(){
+    mt_srand((double)microtime()*10000);
+    $charid = strtoupper(md5(uniqid(rand(), true)));
+    $uuid = substr($charid, 0, 8)
+        .substr($charid, 8, 4)
+        .substr($charid,12, 4)
+        .substr($charid,16, 4)
+        .substr($charid,20,12);
+    return $uuid;
+}

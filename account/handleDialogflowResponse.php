@@ -88,15 +88,14 @@ function HandleDialogflowResponse($dialogflowData,$userID){
                 
 
                 //新增資料到record_account
-                $sql_query = "INSERT INTO record_account (record_uuid,user_uuid,`date`,account)
-                                VALUES (:record_uuid,:user_uuid,:date_,:account)";
+                $sql_query = "INSERT INTO record_account (record_uuid,user_uuid,created_date,account)
+                                VALUES (:record_uuid,:user_uuid,:created_date,:account)";
                 $record_uuid = uuid();
                 $column = array(
                     ':record_uuid' => $record_uuid,
                     ':user_uuid' => $userID,
-                    ':date_' => date('Y-m-d'),
-                    ':account' => $current_account
-                    
+                    ':account' => $current_account,
+                    ':created_date' => date('Y-m-d H:i:s')
                 );
                 $db_result = DBINSERT($sql_query,$column);
                 if($db_result['result'] != true){
@@ -120,6 +119,10 @@ function HandleDialogflowResponse($dialogflowData,$userID){
                     $response = array('type' => 'text' , 'text'=>$text);
                 }
                 break;
+            case 'accumulation_account':
+                //查詢累積金額
+                
+                break;
             default:
                 $response = array('type' => 'text' , 'text'=>'很抱歉，我不清楚你說的話。');
                 break;
@@ -129,16 +132,7 @@ function HandleDialogflowResponse($dialogflowData,$userID){
     return $response;
 }
 
-function uuid(){
-    mt_srand((double)microtime()*10000);
-    $charid = strtoupper(md5(uniqid(rand(), true)));
-    $uuid = substr($charid, 0, 8)
-        .substr($charid, 8, 4)
-        .substr($charid,12, 4)
-        .substr($charid,16, 4)
-        .substr($charid,20,12);
-    return $uuid;
-}
+
 function checkData($dialogflowData){
     $result['result'] = true;
     if(empty($dialogflowData['custom_payload'])){

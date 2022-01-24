@@ -103,6 +103,7 @@ function DBINSERT($sql_query,$parameter=null){
 
     if($execute_result != true){
         $result['result'] = false;
+        logMessage('error：'.json_encode($statement),'ai_config');
     }else{
         $result['result'] = true;
     }
